@@ -324,15 +324,44 @@ function Initialize-IPNetworkEventHandlers {
                    $btnBrowseCsv.IsEnabled = $false
                    if ($txtCsvFilePath -ne $null) { $txtCsvFilePath.Text = "Selecting file..." }
                    
-                   # Create and configure file dialog
-                   $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+                   # Create and configure file dialog with enhanced error handling
+                   $openFileDialog = $null
+                   try {
+                       $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+                   }
+                   catch {
+                       Show-CustomDialog "Failed to create file dialog: $($_.Exception.Message)" "Dialog Error" "OK" "Error"
+                       if ($txtCsvFilePath -ne $null) { $txtCsvFilePath.Text = "" }
+                       $btnBrowseCsv.IsEnabled = $true
+                       return
+                   }
+                   
+                   if ($null -eq $openFileDialog) {
+                       Show-CustomDialog "Failed to create file dialog - object is null" "Dialog Error" "OK" "Error"
+                       if ($txtCsvFilePath -ne $null) { $txtCsvFilePath.Text = "" }
+                       $btnBrowseCsv.IsEnabled = $true
+                       return
+                   }
+                   
                    $openFileDialog.Filter = "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*"
                    $openFileDialog.Title = "Select CSV File to Import"
                    $openFileDialog.CheckFileExists = $false
                    $openFileDialog.CheckPathExists = $false
                    
-                   # Show dialog and get result
-                   $result = $openFileDialog.ShowDialog()
+                   # Show dialog and get result with validation
+                   $result = $null
+                   try {
+                       Write-Host "[DEBUG] Showing file browser dialog" -ForegroundColor Yellow
+                       $result = $openFileDialog.ShowDialog()
+                       Write-Host "[DEBUG] File dialog closed with result: $result" -ForegroundColor Yellow
+                   }
+                   catch {
+                       Show-CustomDialog "Error showing file dialog: $($_.Exception.Message)" "Dialog Error" "OK" "Error"
+                       if ($txtCsvFilePath -ne $null) { $txtCsvFilePath.Text = "" }
+                       if ($openFileDialog) { $openFileDialog.Dispose() }
+                       $btnBrowseCsv.IsEnabled = $true
+                       return
+                   }
                    
                    if ($result -eq "OK") {
                        # Just set the path without any validation
@@ -411,11 +440,45 @@ function Initialize-IPNetworkEventHandlers {
        if ($btnExportCsv -ne $null) {
            $btnExportCsv.Add_Click({
                try {
-                   $saveDialog = New-Object System.Windows.Forms.SaveFileDialog
+                   $saveDialog = $null
+                   try {
+                       $saveDialog = New-Object System.Windows.Forms.SaveFileDialog
+                   }
+                   catch {
+                       if ($txtBlkImportStatus -ne $null) {
+                           $txtBlkImportStatus.Text = "ERROR: Failed to create save dialog: $($_.Exception.Message)"
+                           $txtBlkImportStatus.Foreground = [System.Windows.Media.Brushes]::Red
+                       }
+                       return
+                   }
+                   
+                   if ($null -eq $saveDialog) {
+                       if ($txtBlkImportStatus -ne $null) {
+                           $txtBlkImportStatus.Text = "ERROR: Failed to create save dialog - object is null"
+                           $txtBlkImportStatus.Foreground = [System.Windows.Media.Brushes]::Red
+                       }
+                       return
+                   }
+                   
                    $saveDialog.Filter = "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*"
                    $saveDialog.FileName = "SubnetExport-$(Get-Date -Format 'yyyy-MM-dd_HH-mm').csv"
 
-                   if ($saveDialog.ShowDialog() -eq "OK") {
+                   $dialogResult = $null
+                   try {
+                       Write-Host "[DEBUG] Showing save file dialog" -ForegroundColor Yellow
+                       $dialogResult = $saveDialog.ShowDialog()
+                       Write-Host "[DEBUG] Save dialog closed with result: $dialogResult" -ForegroundColor Yellow
+                   }
+                   catch {
+                       if ($txtBlkImportStatus -ne $null) {
+                           $txtBlkImportStatus.Text = "ERROR: Failed to show save dialog: $($_.Exception.Message)"
+                           $txtBlkImportStatus.Foreground = [System.Windows.Media.Brushes]::Red
+                       }
+                       if ($saveDialog) { $saveDialog.Dispose() }
+                       return
+                   }
+
+                   if ($dialogResult -eq "OK") {
                        $btnExportCsv.IsEnabled = $false
                        if ($txtBlkImportStatus -ne $null) {
                            $txtBlkImportStatus.Text = "Exporting..."

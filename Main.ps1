@@ -4,11 +4,41 @@
 # Set ErrorActionPreference to ensure we catch errors
 $ErrorActionPreference = 'Stop'
 
-# Import required assemblies
-Add-Type -AssemblyName PresentationFramework
-Add-Type -AssemblyName WindowsBase
-Add-Type -AssemblyName PresentationCore
-Add-Type -AssemblyName System.Windows.Forms
+# Import required assemblies with validation
+try {
+    Write-Host "Loading WPF and Windows Forms assemblies..." -ForegroundColor Yellow
+    Add-Type -AssemblyName PresentationFramework
+    Add-Type -AssemblyName WindowsBase
+    Add-Type -AssemblyName PresentationCore
+    Add-Type -AssemblyName System.Windows.Forms
+    
+    # Validate assemblies were loaded correctly
+    $requiredTypes = @(
+        'System.Windows.Window',
+        'System.Windows.Controls.Button',
+        'System.Windows.Forms.OpenFileDialog',
+        'System.Windows.Forms.SaveFileDialog'
+    )
+    
+    foreach ($typeName in $requiredTypes) {
+        try {
+            $type = [Type]::GetType($typeName)
+            if ($null -eq $type) {
+                throw "Type '$typeName' not found"
+            }
+        }
+        catch {
+            throw "Failed to validate required type '$typeName': $($_.Exception.Message)"
+        }
+    }
+    
+    Write-Host "All required assemblies loaded successfully" -ForegroundColor Green
+}
+catch {
+    Write-Host "FATAL ERROR: Failed to load required assemblies: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "The application cannot continue without these assemblies." -ForegroundColor Red
+    exit 1
+}
 
 # Get the script's directory
 $scriptRoot = $PSScriptRoot
