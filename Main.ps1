@@ -262,6 +262,11 @@ try {
         throw "Failed to initialize main window"
     }
 
+    # Set the main window reference for dialogs
+    Write-DebugInfo "Setting main window reference for dialogs"
+    Set-DialogMainWindow -MainWindow $mainWindow
+    Write-DebugInfo "Dialog main window reference set"
+
     # Add this line to test controls
     Test-ControlReferences -window $mainWindow
 

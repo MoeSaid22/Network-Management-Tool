@@ -21,8 +21,19 @@ function Show-EditSiteWindow {
         $editWindow = [Windows.Markup.XamlReader]::Load($editReader)
         
         # Set window properties
-        $editWindow.Owner = $mainWin
+        $editWindow.WindowStartupLocation = "CenterScreen"  # Default positioning
         $editWindow.Title = "Edit Site: $($SiteToEdit.SiteCode)"
+        
+        # Try to set owner if main window is available via DialogManager
+        try {
+            $dialogMainWin = Get-DialogMainWindow
+            if ($null -ne $dialogMainWin -and $dialogMainWin -is [System.Windows.Window]) {
+                $editWindow.Owner = $dialogMainWin
+                $editWindow.WindowStartupLocation = "CenterOwner"
+            }
+        } catch {
+            Write-Warning "Could not set edit window owner: $_"
+        }
         
         # Initialize edit window managers
         $editDeviceManager = [EditDevicePanelManager]::new($editWindow)
