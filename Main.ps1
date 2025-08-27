@@ -51,6 +51,7 @@ $modulePaths = @(
 
     # Shared Modules
     "Modules\Shared\ControlManager.ps1"
+    "Modules\Shared\Utilities.ps1"  # Added new utilities module
     "Modules\Shared\DialogManager.ps1"
     "Modules\Shared\UIControls.ps1"
 
@@ -68,6 +69,7 @@ $modulePaths = @(
     "Modules\Site\Core\DeviceManager.ps1"
     "Modules\Site\Core\SubnetManager.ps1"
     "Modules\Site\Core\WindowInitialization.ps1"
+    "Modules\Site\Core\DataProcessor.ps1"  # Added new data processor module
 
     # Site Data and UI (load these last)
     "Modules\Site\Data\DataStore.ps1"
