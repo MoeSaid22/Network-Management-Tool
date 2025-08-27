@@ -57,7 +57,17 @@ function Show-EditSiteWindow {
         })
         
         # Show the window and return result
-        $result = $editWindow.ShowDialog()
+        try {
+            if ($null -eq $editWindow) {
+                Write-Host "ERROR: editWindow is null before ShowDialog" -ForegroundColor Red
+                return $false
+            }
+            
+            $result = $editWindow.ShowDialog()
+        } catch {
+            Write-Host "ERROR: Exception in editWindow.ShowDialog: $($_.Exception.Message)" -ForegroundColor Red
+            return $false
+        }
         
         if ($result -eq $true) {
             # Refresh the main data grid
