@@ -1,3 +1,29 @@
+# DialogManager.ps1 - Centralized dialog management
+# Handles custom dialogs and message boxes for the Network Management Tool
+
+# Script-scoped variable to store main window reference
+$script:mainWin = $null
+
+# Function to initialize the main window reference for dialogs
+function Set-DialogMainWindow {
+    param(
+        [System.Windows.Window]$MainWindow
+    )
+    
+    if ($null -eq $MainWindow) {
+        Write-Warning "Attempting to set null main window for dialogs"
+        return
+    }
+    
+    $script:mainWin = $MainWindow
+    Write-Host "Dialog main window reference set successfully"
+}
+
+# Function to get the main window reference for other modules
+function Get-DialogMainWindow {
+    return $script:mainWin
+}
+
 function Show-CustomDialog {
     param(
         [string]$Message,
@@ -6,15 +32,31 @@ function Show-CustomDialog {
         [string]$Icon = "Information"  # Information, Warning, Error, Question
     )
     
-    # Create a new window
-    $dialog = New-Object System.Windows.Window
-    $dialog.Title = $Title
-    $dialog.Width = 400
-    $dialog.Height = 200
-    $dialog.WindowStartupLocation = "CenterOwner"
-    $dialog.Owner = $mainWin
-    $dialog.ResizeMode = "NoResize"
-    $dialog.WindowStyle = "SingleBorderWindow"
+    try {
+        # Create a new window
+        $dialog = New-Object System.Windows.Window
+        if ($null -eq $dialog) {
+            Write-Error "Failed to create dialog window"
+            return $null
+        }
+        
+        $dialog.Title = $Title
+        $dialog.Width = 400
+        $dialog.Height = 200
+        $dialog.WindowStartupLocation = "CenterScreen"  # Default to center screen
+        $dialog.ResizeMode = "NoResize"
+        $dialog.WindowStyle = "SingleBorderWindow"
+        
+        # Set owner if available, otherwise center on screen
+        if ($null -ne $script:mainWin -and $script:mainWin -is [System.Windows.Window]) {
+            try {
+                $dialog.Owner = $script:mainWin
+                $dialog.WindowStartupLocation = "CenterOwner"
+            } catch {
+                # If setting owner fails, keep center screen
+                Write-Warning "Could not set dialog owner, centering on screen: $_"
+            }
+        }
     
     # Create the content
     $grid = New-Object System.Windows.Controls.Grid
@@ -91,9 +133,35 @@ function Show-CustomDialog {
     $grid.Children.Add($buttonPanel)
     $dialog.Content = $grid
     
-    # Show dialog and return result
-    $null = $dialog.ShowDialog()
-    return $script:result
+    # Show dialog and return result with proper error handling
+    try {
+        if ($null -eq $dialog) {
+            Write-Error "Dialog object is null before ShowDialog"
+            return $null
+        }
+        
+        $null = $dialog.ShowDialog()
+        return $script:result
+    } catch {
+        Write-Error "Error showing dialog: $_"
+        # Try to show a simple message box as fallback
+        try {
+            [System.Windows.MessageBox]::Show($Message, $Title, "OK", $Icon)
+        } catch {
+            Write-Error "Could not show fallback message box: $_"
+        }
+        return $null
+    }
+} catch {
+    Write-Error "Error creating or configuring dialog: $_"
+    # Fallback to simple message box
+    try {
+        [System.Windows.MessageBox]::Show($Message, $Title, "OK", $Icon)
+    } catch {
+        Write-Error "Could not show fallback message box: $_"
+    }
+    return $null
+}
 }
 
 function Show-ValidationError {
