@@ -6,15 +6,34 @@ function Show-CustomDialog {
         [string]$Icon = "Information"  # Information, Warning, Error, Question
     )
     
-    # Create a new window
-    $dialog = New-Object System.Windows.Window
-    $dialog.Title = $Title
-    $dialog.Width = 400
-    $dialog.Height = 200
-    $dialog.WindowStartupLocation = "CenterOwner"
-    $dialog.Owner = $mainWin
-    $dialog.ResizeMode = "NoResize"
-    $dialog.WindowStyle = "SingleBorderWindow"
+    try {
+        # Create a new window
+        $dialog = New-Object System.Windows.Window
+        if ($null -eq $dialog) {
+            Write-Host "ERROR: Failed to create dialog window" -ForegroundColor Red
+            return "ERROR"
+        }
+        
+        $dialog.Title = $Title
+        $dialog.Width = 400
+        $dialog.Height = 200
+        $dialog.ResizeMode = "NoResize"
+        $dialog.WindowStyle = "SingleBorderWindow"
+        
+        # Handle owner assignment gracefully - check both script and global scopes
+        if ($null -ne $script:mainWin) {
+            $dialog.Owner = $script:mainWin
+            $dialog.WindowStartupLocation = "CenterOwner"
+        } elseif ($null -ne $global:mainWin) {
+            $dialog.Owner = $global:mainWin
+            $dialog.WindowStartupLocation = "CenterOwner"
+        } elseif ($null -ne $mainWin) {
+            $dialog.Owner = $mainWin
+            $dialog.WindowStartupLocation = "CenterOwner"
+        } else {
+            # If no owner available, center on screen
+            $dialog.WindowStartupLocation = "CenterScreen"
+        }
     
     # Create the content
     $grid = New-Object System.Windows.Controls.Grid
@@ -91,9 +110,24 @@ function Show-CustomDialog {
     $grid.Children.Add($buttonPanel)
     $dialog.Content = $grid
     
-    # Show dialog and return result
-    $null = $dialog.ShowDialog()
-    return $script:result
+    # Show dialog and return result with proper error handling
+    try {
+        if ($null -eq $dialog) {
+            Write-Host "ERROR: Dialog is null before ShowDialog" -ForegroundColor Red
+            return "ERROR"
+        }
+        
+        $null = $dialog.ShowDialog()
+        return $script:result
+    } catch {
+        Write-Host "ERROR: Exception in ShowDialog: $($_.Exception.Message)" -ForegroundColor Red
+        return "ERROR"
+    }
+    
+    } catch {
+        Write-Host "ERROR: Exception creating dialog: $($_.Exception.Message)" -ForegroundColor Red
+        return "ERROR"
+    }
 }
 
 function Show-ValidationError {
@@ -116,7 +150,11 @@ function Show-ValidationError {
             # If status text update fails, just continue with dialog
         }
         
-        # Show dialog
-        Show-CustomDialog $Message $Title "OK" "Information"
+        # Show dialog with error handling
+        try {
+            Show-CustomDialog $Message $Title "OK" "Information"
+        } catch {
+            Write-Host "ERROR: Exception in Show-ValidationError: $($_.Exception.Message)" -ForegroundColor Red
+        }
     }
 

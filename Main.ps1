@@ -262,6 +262,10 @@ try {
         throw "Failed to initialize main window"
     }
 
+    # Set script-level variable for dialog manager access
+    $script:mainWin = $mainWindow
+    Write-DebugInfo "Set script:mainWin variable for dialog manager"
+
     # Add this line to test controls
     Test-ControlReferences -window $mainWindow
 
