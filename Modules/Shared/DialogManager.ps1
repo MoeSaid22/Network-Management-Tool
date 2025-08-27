@@ -144,3 +144,98 @@ function Show-ValidationError {
         Show-CustomDialog $Message $Title "OK" "Information"
     }
 
+function Show-ImportModeDialog {
+    # Create dialog for import mode selection
+    Add-Type -AssemblyName PresentationFramework
+    
+    [xml]$xaml = @"
+<Window
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    Title="Import Mode Selection" Height="350" Width="500"
+    WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" Text="How should duplicate sites be handled?" 
+                   FontSize="14" FontWeight="Bold" Margin="0,0,0,20"/>
+        
+        <StackPanel Grid.Row="1" Margin="0,0,0,20">
+            <RadioButton Name="rbUpdate" Content="Smart Update" 
+                        GroupName="ImportMode" IsChecked="False" Margin="0,0,0,10"/>
+            <TextBlock Text="Only update fields with new data`n   • Preserve existing data where Excel is empty" 
+                      Foreground="Gray" Margin="0,0,0,15"/>
+            
+            <RadioButton Name="rbSkip" Content="Skip Duplicates (Recommended)" GroupName="ImportMode" 
+                    IsChecked="True" Margin="0,0,0,10"/>
+            <TextBlock Text="Existing sites will not be modified" 
+                      Foreground="Gray" Margin="0,0,0,15"/>
+            
+            <RadioButton Name="rbReplace" Content="Replace Completely" 
+                        GroupName="ImportMode" Margin="0,0,0,10"/>
+            <TextBlock Text="WARNING: May lose existing data not in Excel" 
+                      Foreground="DarkRed" Margin="0,0,0,15"/>
+        </StackPanel>
+        
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Name="btnOK" Content="Continue Import" Width="100" Height="30" 
+                    Margin="0,0,10,0" IsDefault="True"/>
+            <Button Name="btnCancel" Content="Cancel" Width="75" Height="30" 
+                    IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
+"@
+    
+    $reader = New-Object System.Xml.XmlNodeReader $xaml
+    $dialog = [Windows.Markup.XamlReader]::Load($reader)
+    
+    # Set owner if main window exists
+    if ($null -ne $script:mainWin -and $script:mainWin.IsVisible) {
+        $dialog.Owner = $script:mainWin
+    } elseif ($null -ne $mainWin -and $mainWin.IsVisible) {
+        $dialog.Owner = $mainWin
+    }
+    
+    # Get controls
+    $rbSkip = $dialog.FindName("rbSkip")
+    $rbUpdate = $dialog.FindName("rbUpdate") 
+    $rbReplace = $dialog.FindName("rbReplace")
+    $btnOK = $dialog.FindName("btnOK")
+    $btnCancel = $dialog.FindName("btnCancel")
+    
+    # Set up event handlers with direct return values
+    $btnOK.Add_Click({
+        if ($rbUpdate.IsChecked) {
+            $dialog.Tag = "Update"
+        } elseif ($rbSkip.IsChecked) {
+            $dialog.Tag = "Skip"
+        } elseif ($rbReplace.IsChecked) {
+            $dialog.Tag = "Replace"
+        } else {
+            $dialog.Tag = "Skip"  # Default to Skip
+        }
+        $dialog.DialogResult = $true
+        $dialog.Close()
+    })
+    
+    $btnCancel.Add_Click({
+        $dialog.Tag = "Cancel"
+        $dialog.DialogResult = $false
+        $dialog.Close()
+    })
+    
+    # Show dialog and return result
+    $null = $dialog.ShowDialog()
+    
+    $result = $dialog.Tag
+    if ([string]::IsNullOrEmpty($result)) {
+        return "Cancel"
+    }
+    
+    return $result
+}
+

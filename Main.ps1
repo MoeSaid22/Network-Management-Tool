@@ -238,13 +238,13 @@ try {
     Write-Host "=== Starting Application Initialization ===" -ForegroundColor Cyan
     Write-DebugInfo "Starting main initialization sequence"
     
-    # Define paths
-    $xamlPath = Join-Path $scriptRoot "UI\NetworkManagement.xaml"
+    # Define paths and make XamlPath global for use by modules
+    $script:XamlPath = Join-Path $scriptRoot "UI\NetworkManagement.xaml"
     $siteDataPath = Join-Path $scriptRoot "Data\site_data.json"
     $ipDataPath = Join-Path $scriptRoot "Data\ip_data.json"
 
     Write-DebugInfo "Paths configured:"
-    Write-DebugInfo "XAML: $xamlPath"
+    Write-DebugInfo "XAML: $script:XamlPath"
     Write-DebugInfo "Site Data: $siteDataPath"
     Write-DebugInfo "IP Data: $ipDataPath"
 
@@ -252,10 +252,10 @@ try {
     Write-Host "`nInitializing data stores..." -ForegroundColor Yellow
     Initialize-DataStores -siteDataPath $siteDataPath -ipDataPath $ipDataPath
     
-    # Initialize main window
+    # Initialize main window using global XamlPath
     Write-Host "`nInitializing main window..." -ForegroundColor Yellow
     Write-DebugInfo "About to initialize main window"
-    $mainWindow = Initialize-MainWindow -xamlPath $xamlPath
+    $mainWindow = Initialize-MainWindow -xamlPath $script:XamlPath
     Write-DebugInfo "Main window initialized"
     
     if (-not $mainWindow) {
