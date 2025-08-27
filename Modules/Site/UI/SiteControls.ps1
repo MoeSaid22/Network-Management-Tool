@@ -1542,31 +1542,31 @@ function Initialize-DataGridHandlers {
 }
 
 function Initialize-WindowLoadedHandler {
-$mainWin.Add_Loaded({
-    try {
-        Write-Host "[WINDOW_LOADED] Starting window loaded handler..."
-        
-        # Test data store accessibility first
-        Write-Host "[WINDOW_LOADED] Testing data stores..."
-        if ($script:siteDataStore -eq $null) {
-            Write-Host "[WINDOW_LOADED] ERROR: siteDataStore is null!"
-        } else {
-            Write-Host "[WINDOW_LOADED] siteDataStore OK"
-        }
-        
-        if ($script:subnetDataStore -eq $null) {
-            Write-Host "[WINDOW_LOADED] ERROR: subnetDataStore is null!"
-        } else {
-            Write-Host "[WINDOW_LOADED] subnetDataStore OK"
-        }
-        
-        Write-Host "[WINDOW_LOADED] Initializing device and field managers..."
-        # Initialize managers after window is fully loaded
-        $script:DeviceManager = [DevicePanelManager]::new($mainWin)
-        $script:FieldManager = [FieldMappingManager]::new($mainWin)
-        Write-Host "[WINDOW_LOADED] Managers initialized successfully"
-        
-        Write-Host "[WINDOW_LOADED] Setting initial visibility states..."
+    $mainWin.Add_Loaded({
+        try {
+            Write-Host "[WINDOW_LOADED] Starting window loaded handler..."
+            
+            # Test data store accessibility first
+            Write-Host "[WINDOW_LOADED] Testing data stores..."
+            if ($script:siteDataStore -eq $null) {
+                Write-Host "[WINDOW_LOADED] ERROR: siteDataStore is null!"
+            } else {
+                Write-Host "[WINDOW_LOADED] siteDataStore OK"
+            }
+            
+            if ($script:subnetDataStore -eq $null) {
+                Write-Host "[WINDOW_LOADED] ERROR: subnetDataStore is null!"
+            } else {
+                Write-Host "[WINDOW_LOADED] subnetDataStore OK"
+            }
+            
+            Write-Host "[WINDOW_LOADED] Initializing device and field managers..."
+            # Use $this instead of $mainWin in the window's Loaded event handler
+            $script:DeviceManager = [DevicePanelManager]::new($this)
+            $script:FieldManager = [FieldMappingManager]::new($this)
+            Write-Host "[WINDOW_LOADED] Managers initialized successfully"
+            
+            Write-Host "[WINDOW_LOADED] Setting initial visibility states..."
         # Set initial visibility states
         if ($grpSiteLookupResults) { 
             $grpSiteLookupResults.Visibility = "Collapsed" 

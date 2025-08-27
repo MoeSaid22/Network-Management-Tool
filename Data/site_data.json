@@ -154,6 +154,10 @@
                                 "SerialNumber":  ""
                             }
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.101.20.1",
         "FirewallName":  "CBLF-FW",
         "FirewallVersion":  "",
@@ -298,6 +302,10 @@
                                 "SerialNumber":  ""
                             }
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.102.20.1",
         "FirewallName":  "CCAR-FW",
         "FirewallVersion":  "",
@@ -423,6 +431,10 @@
         "CCTVDevices":  [
 
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.103.20.1",
         "FirewallName":  "CRCH-FW",
         "FirewallVersion":  "",
@@ -535,6 +547,10 @@
         "CCTVDevices":  [
 
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.104.20.1",
         "FirewallName":  "CPCC-FW",
         "FirewallVersion":  "",
@@ -654,6 +670,10 @@
         "CCTVDevices":  [
 
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.105.20.1",
         "FirewallName":  "CMAK-FW",
         "FirewallVersion":  "",
@@ -780,6 +800,10 @@
         "CCTVDevices":  [
 
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.106.20.1",
         "FirewallName":  "CAMI-FW",
         "FirewallVersion":  "",
@@ -899,6 +923,10 @@
         "CCTVDevices":  [
 
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.107.20.1",
         "FirewallName":  "CSSW-FW",
         "FirewallVersion":  "",
@@ -1011,6 +1039,10 @@
         "CCTVDevices":  [
 
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.108.20.1",
         "FirewallName":  "C4TH-FW",
         "FirewallVersion":  "",
@@ -1123,6 +1155,10 @@
         "CCTVDevices":  [
 
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.109.20.1",
         "FirewallName":  "CELG-FW",
         "FirewallVersion":  "",
@@ -1235,6 +1271,10 @@
         "CCTVDevices":  [
 
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.110.20.1",
         "FirewallName":  "CNEL-FW",
         "FirewallVersion":  "",
@@ -1347,6 +1387,10 @@
         "CCTVDevices":  [
 
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.111.20.1",
         "FirewallName":  "CALB-FW",
         "FirewallVersion":  "",
@@ -1459,6 +1503,10 @@
         "CCTVDevices":  [
 
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.112.20.1",
         "FirewallName":  "CVIC-FW",
         "FirewallVersion":  "",
@@ -1571,6 +1619,10 @@
         "CCTVDevices":  [
 
                         ],
+        "PrinterCount":  0,
+        "PrinterDevices":  [
+
+                           ],
         "FirewallIP":  "10.113.20.1",
         "FirewallName":  "CMEM-FW",
         "FirewallVersion":  "",
@@ -1637,112 +1689,6 @@
         "PrimaryCircuitIP":  "72.38.101.82",
         "PrimaryDownloadSpeed":  "360",
         "PrimaryUploadSpeed":  "30",
-        "BackupVendor":  "",
-        "BackupCircuitIP":  "",
-        "BackupDownloadSpeed":  "",
-        "BackupUploadSpeed":  ""
-    },
-    {
-        "ID":  14,
-        "SiteCode":  "CLAU",
-        "SiteSubnet":  "10.114.0.0",
-        "SiteSubnetCode":  "114",
-        "SiteName":  "Rockland",
-        "SiteAddress":  "1026 Laurier Avenue, Rockland ON Suite #107",
-        "MainContactName":  "Jennifer-Lynn Lalonde",
-        "MainContactPhone":  "6133639368",
-        "SecondContactName":  "",
-        "SecondContactPhone":  "",
-        "MainContactPhoneFormatted":  "+1 (613) 363-9368",
-        "SecondContactPhoneFormatted":  "",
-        "SwitchCount":  1,
-        "Switches":  [
-                         {
-                             "ManagementIP":  "192.168.81.0",
-                             "Name":  "CLAU-SWT-001",
-                             "AssetTag":  "",
-                             "Version":  "",
-                             "SerialNumber":  ""
-                         }
-                     ],
-        "APCount":  0,
-        "AccessPoints":  [
-
-                         ],
-        "UPSCount":  0,
-        "UPSDevices":  [
-
-                       ],
-        "CCTVCount":  0,
-        "CCTVDevices":  [
-
-                        ],
-        "FirewallIP":  "10.114.20.1",
-        "FirewallName":  "CLAU-FW",
-        "FirewallVersion":  "",
-        "FirewallSN":  "",
-        "PrimaryCircuit":  {
-                               "Vendor":  "VIDEOTRON",
-                               "CircuitType":  "Cable",
-                               "CircuitID":  "78222317-001-3",
-                               "DownloadSpeed":  "400",
-                               "UploadSpeed":  "50",
-                               "IPAddress":  "24.37.100.78",
-                               "SubnetMask":  "255.255.255.252",
-                               "DefaultGateway":  "24.37.100.77",
-                               "DNS1":  "",
-                               "DNS2":  "",
-                               "RouterModel":  "ZyXEL",
-                               "RouterName":  "EMG2926-Q10A",
-                               "RouterSN":  "S180A40002450",
-                               "PPPoEUsername":  "VLQARGOI",
-                               "PPPoEPassword":  "VLQARGOI1",
-                               "HasModem":  true,
-                               "ModemModel":  "TC4400-AM",
-                               "ModemName":  "Technicolor",
-                               "ModemSN":  "CP1912HDEZB"
-                           },
-        "HasBackupCircuit":  false,
-        "BackupCircuit":  {
-                              "Vendor":  null,
-                              "CircuitType":  null,
-                              "CircuitID":  null,
-                              "DownloadSpeed":  null,
-                              "UploadSpeed":  null,
-                              "IPAddress":  null,
-                              "SubnetMask":  null,
-                              "DefaultGateway":  null,
-                              "DNS1":  null,
-                              "DNS2":  null,
-                              "RouterModel":  null,
-                              "RouterName":  null,
-                              "RouterSN":  null,
-                              "PPPoEUsername":  null,
-                              "PPPoEPassword":  null,
-                              "HasModem":  false,
-                              "ModemModel":  null,
-                              "ModemName":  null,
-                              "ModemSN":  null
-                          },
-        "VLANs":  {
-                      "VLAN100_Servers":  "10.114.10.0",
-                      "VLAN101_NetworkDevices":  "10.114.20.0",
-                      "VLAN102_UserDevices":  "10.114.102.0",
-                      "VLAN103_UserDevices2":  "10.114.103.0",
-                      "VLAN104_VOIP":  "10.114.40.0",
-                      "VLAN105_WiFiCorp":  "10.114.50.0",
-                      "VLAN106_WiFiBYOD":  "10.114.60.0",
-                      "VLAN107_WiFiGuest":  "10.114.70.0",
-                      "VLAN108_Spare":  "10.114.80.0",
-                      "VLAN109_DMZ":  "10.114.90.0",
-                      "VLAN110_CCTV":  "10.114.110.0"
-                  },
-        "Switch1IP":  "192.168.81.0",
-        "Switch1Name":  "CLAU-SWT-001",
-        "PrimaryVendor":  "VIDEOTRON",
-        "PrimaryCircuitIP":  "24.37.100.78",
-        "PrimaryDownloadSpeed":  "400",
-        "PrimaryUploadSpeed":  "50",
         "BackupVendor":  "",
         "BackupCircuitIP":  "",
         "BackupDownloadSpeed":  "",

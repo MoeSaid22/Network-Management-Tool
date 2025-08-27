@@ -293,6 +293,12 @@ try {
     # Show the window
     try {
         Write-Host "About to show main window dialog..."
+        
+        # Add validation to prevent null reference exception
+        if ($null -eq $mainWindow) {
+            throw "MainWindow is null before ShowDialog"
+        }
+        
         $result = $mainWindow.ShowDialog()
         Write-Host "Dialog result: $result"
         Write-Host "Dialog closed normally"
