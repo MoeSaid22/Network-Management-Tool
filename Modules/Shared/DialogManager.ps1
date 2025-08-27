@@ -7,11 +7,31 @@ function Show-CustomDialog {
     )
     
     try {
-        # Create a new window
-        $dialog = New-Object System.Windows.Window
+        # Validate WPF assemblies are loaded
+        try {
+            if (-not ([System.Management.Automation.PSTypeName]'System.Windows.Window').Type) {
+                Write-Warning "WPF assemblies not loaded properly"
+                return $null
+            }
+        }
+        catch {
+            Write-Warning "Failed to validate WPF assemblies: $_"
+            return $null
+        }
+        
+        # Create a new window with enhanced error handling
+        $dialog = $null
+        try {
+            $dialog = New-Object System.Windows.Window
+        }
+        catch {
+            Write-Warning "Failed to create dialog window object: $_"
+            return $null
+        }
+        
         if ($null -eq $dialog) {
-            Write-Warning "Failed to create dialog window"
-            return
+            Write-Warning "Failed to create dialog window - object is null"
+            return $null
         }
 
         $dialog.Title = $Title
@@ -102,20 +122,52 @@ function Show-CustomDialog {
         $grid.Children.Add($buttonPanel)
         $dialog.Content = $grid
         
-        # Show dialog with error handling
+        # Show dialog with comprehensive error handling
         if ($null -ne $dialog) {
             try {
+                # Additional validation before showing dialog
+                if ($null -eq $dialog.Content) {
+                    Write-Warning "Dialog content is null - cannot show dialog"
+                    return $null
+                }
+                
+                # Validate dialog is properly initialized
+                if ([string]::IsNullOrEmpty($dialog.Title)) {
+                    Write-Warning "Dialog title is not set - dialog may not be properly initialized"
+                    return $null
+                }
+                
+                Write-Host "[DEBUG] Showing dialog: '$($dialog.Title)'" -ForegroundColor Yellow
                 $null = $dialog.ShowDialog()
+                Write-Host "[DEBUG] Dialog closed successfully" -ForegroundColor Yellow
             }
             catch {
-                Write-Warning "Error showing dialog: $_"
+                Write-Warning "Error showing dialog '$Title': $($_.Exception.Message)"
+                Write-Host "[DEBUG] Exception details: $($_.Exception.GetType().Name) - $($_.Exception.Message)" -ForegroundColor Red
+                
+                # Try to close dialog if it was partially shown
+                try {
+                    if ($dialog -and $dialog.IsVisible) {
+                        $dialog.Close()
+                    }
+                }
+                catch {
+                    # Silent fail on cleanup
+                }
+                return $null
             }
+        }
+        else {
+            Write-Warning "Cannot show dialog - dialog object is null"
+            return $null
         }
         
         return $script:result
     }
     catch {
-        Write-Warning "Error in Show-CustomDialog: $_"
+        Write-Warning "Error in Show-CustomDialog: $($_.Exception.Message)"
+        Write-Host "[DEBUG] Full exception details: $($_.Exception.GetType().Name) - $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "[DEBUG] Stack trace: $($_.ScriptStackTrace)" -ForegroundColor Red
         return $null
     }
 }

@@ -1304,8 +1304,14 @@ function Release-ComObject {
 }
 
 function Show-ImportModeDialog {
-    # Create dialog with proper variable handling
-    Add-Type -AssemblyName PresentationFramework
+    # Create dialog with proper variable handling and enhanced error checking
+    try {
+        Add-Type -AssemblyName PresentationFramework
+    }
+    catch {
+        Write-Warning "Failed to load PresentationFramework assembly: $($_.Exception.Message)"
+        return "Cancel"
+    }
     
     [xml]$xaml = @"
 <Window
@@ -1350,8 +1356,36 @@ function Show-ImportModeDialog {
 "@
     
     $reader = New-Object System.Xml.XmlNodeReader $xaml
-    $dialog = [Windows.Markup.XamlReader]::Load($reader)
-    $dialog.Owner = $mainWin
+    $dialog = $null
+    try {
+        $dialog = [Windows.Markup.XamlReader]::Load($reader)
+    }
+    catch {
+        Write-Warning "Failed to load import mode dialog XAML: $($_.Exception.Message)"
+        return "Cancel"
+    }
+    
+    if ($null -eq $dialog) {
+        Write-Warning "Import mode dialog creation failed - dialog object is null"
+        return "Cancel"
+    }
+    
+    # Validate dialog is a proper Window object
+    if (-not ($dialog -is [System.Windows.Window])) {
+        Write-Warning "Import mode dialog XAML loading failed - invalid window type"
+        return "Cancel"
+    }
+    
+    # Set owner safely
+    try {
+        if ($null -ne $mainWin -and $mainWin.IsVisible) {
+            $dialog.Owner = $mainWin
+        }
+    }
+    catch {
+        Write-Warning "Failed to set dialog owner: $($_.Exception.Message)"
+        # Continue without owner
+    }
     
     # Get controls
     $rbSkip = $dialog.FindName("rbSkip")
@@ -1381,8 +1415,22 @@ function Show-ImportModeDialog {
         $dialog.Close()
     })
     
-    # Show dialog and return result
-    $null = $dialog.ShowDialog()
+    # Show dialog and return result with enhanced error handling
+    try {
+        if ($null -eq $dialog) {
+            Write-Warning "Cannot show import mode dialog - dialog object is null"
+            return "Cancel"
+        }
+        
+        Write-Host "[DEBUG] Showing import mode dialog" -ForegroundColor Yellow
+        $null = $dialog.ShowDialog()
+        Write-Host "[DEBUG] Import mode dialog closed successfully" -ForegroundColor Yellow
+    }
+    catch {
+        Write-Warning "Error showing import mode dialog: $($_.Exception.Message)"
+        Write-Host "[DEBUG] ShowDialog exception: $($_.Exception.GetType().Name) - $($_.Exception.Message)" -ForegroundColor Red
+        return "Cancel"
+    }
     
     $result = $dialog.Tag
     if ([string]::IsNullOrEmpty($result)) {

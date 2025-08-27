@@ -20,6 +20,18 @@ function Show-EditSiteWindow {
         $editReader = New-Object System.Xml.XmlNodeReader $editXml
         $editWindow = [Windows.Markup.XamlReader]::Load($editReader)
         
+        # Validate editWindow was created successfully
+        if ($null -eq $editWindow) {
+            Show-CustomDialog "Failed to load edit window XAML - window object is null" "XAML Loading Error" "OK" "Error"
+            return $false
+        }
+        
+        # Validate editWindow is a proper Window object
+        if (-not ($editWindow -is [System.Windows.Window])) {
+            Show-CustomDialog "Edit window XAML loading failed - invalid window type" "XAML Loading Error" "OK" "Error"
+            return $false
+        }
+        
         # Set window properties
         $editWindow.Owner = $mainWin
         $editWindow.Title = "Edit Site: $($SiteToEdit.SiteCode)"
@@ -56,8 +68,22 @@ function Show-EditSiteWindow {
             $editControls.txtEditStatus.Foreground = [System.Windows.Media.Brushes]::Blue
         })
         
-        # Show the window and return result
-        $result = $editWindow.ShowDialog()
+        # Show the window and return result with enhanced error handling
+        if ($null -eq $editWindow) {
+            Show-CustomDialog "Edit window is null - cannot display window" "Window Display Error" "OK" "Error"
+            return $false
+        }
+        
+        try {
+            Write-Host "[DEBUG] Showing edit window for site: $($SiteToEdit.SiteCode)" -ForegroundColor Yellow
+            $result = $editWindow.ShowDialog()
+            Write-Host "[DEBUG] Edit window closed with result: $result" -ForegroundColor Yellow
+        }
+        catch {
+            Show-CustomDialog "Error displaying edit window: $($_.Exception.Message)" "Window Display Error" "OK" "Error"
+            Write-Host "[DEBUG] ShowDialog exception: $($_.Exception.GetType().Name) - $($_.Exception.Message)" -ForegroundColor Red
+            return $false
+        }
         
         if ($result -eq $true) {
             # Refresh the main data grid
