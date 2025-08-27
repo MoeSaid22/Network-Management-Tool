@@ -5,10 +5,24 @@ class DevicePanelManager {
     [object]$MainWindow
     
     DevicePanelManager([object]$mainWindow) {
-        $this.MainWindow = $mainWindow
-        $this.InitializeConfigurations()
-        $this.InitializeUIReferences()
+    Write-Host "[DEVICE_MANAGER] Creating DevicePanelManager..."
+    
+    if ($mainWindow -eq $null) {
+        Write-Host "[DEVICE_MANAGER] ERROR: Received null mainWindow parameter"
+        throw "MainWindow parameter cannot be null"
     }
+    
+    Write-Host "[DEVICE_MANAGER] Received mainWindow of type: $($mainWindow.GetType().Name)"
+    $this.MainWindow = $mainWindow
+    
+    Write-Host "[DEVICE_MANAGER] Initializing configurations..."
+    $this.InitializeConfigurations()
+    
+    Write-Host "[DEVICE_MANAGER] About to initialize UI references..."
+    $this.InitializeUIReferences()
+    
+    Write-Host "[DEVICE_MANAGER] DevicePanelManager created successfully"
+}
     
     [void] InitializeConfigurations() {
         $this.Configurations = @{
@@ -90,22 +104,79 @@ class DevicePanelManager {
     }
     
     [void] InitializeUIReferences() {
-        $this.StackPanels = @{
-            'Switch' = $this.MainWindow.FindName("stkSwitches")
-            'AccessPoint' = $this.MainWindow.FindName("stkAccessPoints") 
-            'UPS' = $this.MainWindow.FindName("stkUPS")
-            'CCTV' = $this.MainWindow.FindName("stkCCTV")
-            'Printer' = $this.MainWindow.FindName("stkPrinter")
-        }
-        
-        $this.ComboBoxes = @{
-            'Switch' = $this.MainWindow.FindName("cmbSwitchCount")
-            'AccessPoint' = $this.MainWindow.FindName("cmbAPCount")
-            'UPS' = $this.MainWindow.FindName("cmbUPSCount") 
-            'CCTV' = $this.MainWindow.FindName("cmbCCTVCount")
-            'Printer' = $this.MainWindow.FindName("cmbPrinterCount")
-        }
+    Write-Host "[DEVICE_MANAGER] Starting InitializeUIReferences..."
+    
+    # Check if MainWindow is null
+    if ($this.MainWindow -eq $null) {
+        Write-Host "[DEVICE_MANAGER] ERROR: MainWindow is null!"
+        throw "MainWindow reference is null in DevicePanelManager"
     }
+    
+    Write-Host "[DEVICE_MANAGER] MainWindow type: $($this.MainWindow.GetType().Name)"
+    
+    # Test if FindName method is available
+    try {
+        $testElement = $this.MainWindow.FindName("MainTabControl")
+        if ($testElement) {
+            Write-Host "[DEVICE_MANAGER] FindName method is working - found MainTabControl"
+        } else {
+            Write-Host "[DEVICE_MANAGER] WARNING: FindName method returned null for MainTabControl"
+        }
+    } catch {
+        Write-Host "[DEVICE_MANAGER] ERROR: FindName method failed: $_"
+        throw "FindName method is not available on MainWindow"
+    }
+    
+    # Initialize StackPanels with error handling
+    Write-Host "[DEVICE_MANAGER] Initializing StackPanels..."
+    $this.StackPanels = @{}
+    
+    try {
+        $this.StackPanels['Switch'] = $this.MainWindow.FindName("stkSwitches")
+        Write-Host "[DEVICE_MANAGER] Switch StackPanel: $($this.StackPanels['Switch'] -ne $null)"
+        
+        $this.StackPanels['AccessPoint'] = $this.MainWindow.FindName("stkAccessPoints")
+        Write-Host "[DEVICE_MANAGER] AccessPoint StackPanel: $($this.StackPanels['AccessPoint'] -ne $null)"
+        
+        $this.StackPanels['UPS'] = $this.MainWindow.FindName("stkUPS")
+        Write-Host "[DEVICE_MANAGER] UPS StackPanel: $($this.StackPanels['UPS'] -ne $null)"
+        
+        $this.StackPanels['CCTV'] = $this.MainWindow.FindName("stkCCTV")
+        Write-Host "[DEVICE_MANAGER] CCTV StackPanel: $($this.StackPanels['CCTV'] -ne $null)"
+        
+        $this.StackPanels['Printer'] = $this.MainWindow.FindName("stkPrinter")
+        Write-Host "[DEVICE_MANAGER] Printer StackPanel: $($this.StackPanels['Printer'] -ne $null)"
+    } catch {
+        Write-Host "[DEVICE_MANAGER] ERROR initializing StackPanels: $_"
+        throw "Failed to initialize StackPanels: $_"
+    }
+    
+    # Initialize ComboBoxes with error handling
+    Write-Host "[DEVICE_MANAGER] Initializing ComboBoxes..."
+    $this.ComboBoxes = @{}
+    
+    try {
+        $this.ComboBoxes['Switch'] = $this.MainWindow.FindName("cmbSwitchCount")
+        Write-Host "[DEVICE_MANAGER] Switch ComboBox: $($this.ComboBoxes['Switch'] -ne $null)"
+        
+        $this.ComboBoxes['AccessPoint'] = $this.MainWindow.FindName("cmbAPCount")
+        Write-Host "[DEVICE_MANAGER] AccessPoint ComboBox: $($this.ComboBoxes['AccessPoint'] -ne $null)"
+        
+        $this.ComboBoxes['UPS'] = $this.MainWindow.FindName("cmbUPSCount")
+        Write-Host "[DEVICE_MANAGER] UPS ComboBox: $($this.ComboBoxes['UPS'] -ne $null)"
+        
+        $this.ComboBoxes['CCTV'] = $this.MainWindow.FindName("cmbCCTVCount")
+        Write-Host "[DEVICE_MANAGER] CCTV ComboBox: $($this.ComboBoxes['CCTV'] -ne $null)"
+        
+        $this.ComboBoxes['Printer'] = $this.MainWindow.FindName("cmbPrinterCount")
+        Write-Host "[DEVICE_MANAGER] Printer ComboBox: $($this.ComboBoxes['Printer'] -ne $null)"
+    } catch {
+        Write-Host "[DEVICE_MANAGER] ERROR initializing ComboBoxes: $_"
+        throw "Failed to initialize ComboBoxes: $_"
+    }
+    
+    Write-Host "[DEVICE_MANAGER] InitializeUIReferences completed successfully"
+}
     
         
     # Universal panel update
@@ -249,8 +320,8 @@ class DevicePanelManager {
         foreach ($groupBox in $stackPanel.Children) {
             if ($groupBox.Header -match ($config.HeaderTemplate -f '(\d+)')) {
                 $deviceNumber = $matches[1]
-                $paddedNumber = $deviceNumber.PadLeft(3, '0')
-                $deviceName = "$siteCode-$($config.Prefix)-$paddedNumber"
+                $padedNumber = $deviceNumber.PadLeft(3, '0')
+                $deviceName = "$siteCode-$($config.Prefix)-$padedNumber"
                 
                 $nameControl = $this.FindControlInPanel($groupBox, "txt$deviceType${deviceNumber}Name")
                 if ($nameControl) {

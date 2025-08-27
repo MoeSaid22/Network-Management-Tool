@@ -1,9 +1,14 @@
 class SubnetDataStore {
-    hidden [string]$DataFile = "$PSScriptRoot\ip_data.json"
+    hidden [string]$DataFile
     hidden [System.Collections.Generic.List[SubnetEntry]]$Entries
 
     SubnetDataStore() {
+        # Initialize Entries list in constructor
         $this.Entries = [System.Collections.Generic.List[SubnetEntry]]::new()
+    }
+
+    [void] SetDataPath([string]$path) {
+        $this.DataFile = $path
         $this.LoadData()
     }
 

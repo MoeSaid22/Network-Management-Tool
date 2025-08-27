@@ -1,5 +1,3 @@
-# Main.ps1
-#
 # Author: MoeSaid22
 # Created: 2025-08-26 20:59:14 UTC
 
@@ -14,6 +12,32 @@ Add-Type -AssemblyName System.Windows.Forms
 
 # Get the script's directory
 $scriptRoot = $PSScriptRoot
+
+# Debug functions
+$script:DEBUG_MODE = $true
+
+function Write-DebugInfo {
+    param([string]$message)
+    if ($script:DEBUG_MODE) {
+        Write-Host "[DEBUG] $message" -ForegroundColor Magenta
+    }
+}
+
+function Test-DataStores {
+    Write-DebugInfo "Testing data store accessibility..."
+    
+    if ($null -eq $script:siteDataStore) {
+        Write-DebugInfo "siteDataStore is null!"
+    } else {
+        Write-DebugInfo "siteDataStore exists"
+    }
+    
+    if ($null -eq $script:subnetDataStore) {
+        Write-DebugInfo "subnetDataStore is null!"
+    } else {
+        Write-DebugInfo "subnetDataStore exists"
+    }
+}
 
 Write-Host "Current Date and Time (UTC): $([DateTime]::UtcNow.ToString('yyyy-MM-dd HH:mm:ss'))"
 Write-Host "Current User's Login: MoeSaid22"
@@ -90,68 +114,207 @@ function Initialize-DataStores {
     )
     
     try {
-        Write-Host "Initializing data stores..."
+        Write-Host "=== Starting Data Store Initialization ==="
+        Write-Host "[DEBUG] Beginning data store initialization"
         
+        # Check if data files exist
+        Write-Host "[DEBUG] Checking data file paths..."
+        Write-Host "[DEBUG] Site data path: $siteDataPath"
+        Write-Host "[DEBUG] IP data path: $ipDataPath"
+        
+        if (-not (Test-Path $siteDataPath)) {
+            Write-Host "[DEBUG] Site data file does not exist, will be created: $siteDataPath"
+            # Create empty JSON file
+            '[]' | Out-File -FilePath $siteDataPath -Encoding UTF8
+        } else {
+            Write-Host "[DEBUG] Site data file exists: $siteDataPath"
+        }
+        
+        if (-not (Test-Path $ipDataPath)) {
+            Write-Host "[DEBUG] IP data file does not exist, will be created: $ipDataPath"
+            # Create empty JSON file
+            '[]' | Out-File -FilePath $ipDataPath -Encoding UTF8
+        } else {
+            Write-Host "[DEBUG] IP data file exists: $ipDataPath"
+        }
+        
+        Write-Host "Initializing data stores..."
         # Initialize site data store
-        if ($script:siteDataStore) {
-            Write-Host "Setting site data path: $siteDataPath"
-            $script:siteDataStore.SetDataPath($siteDataPath)
-        }
-        else {
-            Write-Host "Creating new site data store"
-            $script:siteDataStore = [SiteDataStore]::new()
-            $script:siteDataStore.SetDataPath($siteDataPath)
-        }
+        Write-Host "Creating new site data store..." -ForegroundColor Yellow
+        Write-DebugInfo "Creating site data store"
+        $script:siteDataStore = [SiteDataStore]::new()
+        Write-Host "Setting site data path: $siteDataPath" -ForegroundColor Yellow
+        Write-DebugInfo "Setting site data path"
+        $script:siteDataStore.SetDataPath($siteDataPath)
 
         # Initialize subnet data store
-        if ($script:subnetDataStore) {
-            Write-Host "Setting IP data path: $ipDataPath"
-            $script:subnetDataStore.SetDataPath($ipDataPath)
-        }
-        else {
-            Write-Host "Creating new subnet data store"
-            $script:subnetDataStore = [SubnetDataStore]::new()
-            $script:subnetDataStore.SetDataPath($ipDataPath)
-        }
+        Write-Host "Creating new subnet data store..." -ForegroundColor Yellow
+        Write-DebugInfo "Creating subnet data store"
+        $script:subnetDataStore = [SubnetDataStore]::new()
+        Write-Host "Setting IP data path: $ipDataPath" -ForegroundColor Yellow
+        Write-DebugInfo "Setting IP data path"
+        $script:subnetDataStore.SetDataPath($ipDataPath)
 
-        Write-Host "Data stores initialized successfully"
+        Write-Host "=== Data Store Initialization Completed Successfully ===" -ForegroundColor Green
+        Write-DebugInfo "Data store initialization complete"
+        
+        # Verify data stores
+        Test-DataStores
     }
     catch {
-        throw "Failed to initialize data stores: $_"
+        Write-Host "=== Data Store Initialization Failed ===" -ForegroundColor Red
+        Write-Host "Error: $_" -ForegroundColor Red
+        Write-Host "Stack Trace:" -ForegroundColor Red
+        Write-Host $_.ScriptStackTrace -ForegroundColor Red
+        Write-DebugInfo "Data store initialization failed with error: $_"
+        throw
     }
 }
 
-# Main application block
+# Add this function after your other debug functions
+function Test-ControlReferences {
+    param(
+        [System.Windows.Window]$window
+    )
+    Write-DebugInfo "Testing control references..."
+    Write-DebugInfo "Window type: $($window.GetType().FullName)"
+    
+    try {
+        # Check if Content is loaded
+        if ($null -eq $window.Content) {
+            Write-DebugInfo "WARNING: Window.Content is null!"
+        } else {
+            Write-DebugInfo "Window.Content is of type: $($window.Content.GetType().FullName)"
+        }
+
+        # Try to find all named elements
+        $allElements = Get-NamedElements -window $window
+        if ($allElements.Count -eq 0) {
+            Write-DebugInfo "WARNING: No named elements found in window!"
+        } else {
+            foreach ($element in $allElements) {
+                Write-DebugInfo "Found element: Name='$($element.Name)' Type='$($element.GetType().Name)'"
+            }
+        }
+    }
+    catch {
+        Write-DebugInfo "Error testing controls: $_"
+        Write-DebugInfo "Stack trace: $($_.ScriptStackTrace)"
+    }
+}
+
+function Get-NamedElements {
+    param(
+        [System.Windows.DependencyObject]$window
+    )
+    
+    $result = @()
+    
+    try {
+        if ($null -ne $window) {
+            # Get the count of children
+            $count = [System.Windows.Media.VisualTreeHelper]::GetChildrenCount($window)
+            Write-DebugInfo "Child count: $count"
+            
+            for ($i = 0; $i -lt $count; $i++) {
+                $child = [System.Windows.Media.VisualTreeHelper]::GetChild($window, $i)
+                if ($null -ne $child.Name) {
+                    $result += $child
+                }
+                # Recursively check children
+                $result += Get-NamedElements -window $child
+            }
+        }
+    }
+    catch {
+        Write-DebugInfo "Error in Get-NamedElements: $_"
+    }
+    
+    return $result
+}
+
+# Main initialization sequence
 try {
+    Write-Host "=== Starting Application Initialization ===" -ForegroundColor Cyan
+    Write-DebugInfo "Starting main initialization sequence"
+    
     # Define paths
     $xamlPath = Join-Path $scriptRoot "UI\NetworkManagement.xaml"
     $siteDataPath = Join-Path $scriptRoot "Data\site_data.json"
     $ipDataPath = Join-Path $scriptRoot "Data\ip_data.json"
 
-    Write-Host "Starting application initialization..."
+    Write-DebugInfo "Paths configured:"
+    Write-DebugInfo "XAML: $xamlPath"
+    Write-DebugInfo "Site Data: $siteDataPath"
+    Write-DebugInfo "IP Data: $ipDataPath"
 
+    # Initialize data stores FIRST
+    Write-Host "`nInitializing data stores..." -ForegroundColor Yellow
+    Initialize-DataStores -siteDataPath $siteDataPath -ipDataPath $ipDataPath
+    
     # Initialize main window
+    Write-Host "`nInitializing main window..." -ForegroundColor Yellow
+    Write-DebugInfo "About to initialize main window"
     $mainWindow = Initialize-MainWindow -xamlPath $xamlPath
+    Write-DebugInfo "Main window initialized"
     
     if (-not $mainWindow) {
         throw "Failed to initialize main window"
     }
 
-    # Initialize all handlers and controls
-    Initialize-AllHandlers -mainWin $mainWindow
+    # Add this line to test controls
+    Test-ControlReferences -window $mainWindow
 
-    # Initialize data stores with correct paths
-    Initialize-DataStores -siteDataPath $siteDataPath -ipDataPath $ipDataPath
+    # Test data stores before handler initialization
+    Test-DataStores
+    
+    # Initialize handlers
+    Write-Host "`nInitializing handlers..." -ForegroundColor Yellow
+    Write-DebugInfo "About to initialize handlers"
+    $result = Initialize-AllHandlers -mainWin $mainWindow
+    Write-DebugInfo "Handler initialization completed with result: $result"
+    
+    if (-not $result) {
+        throw "Handler initialization failed"
+    }
 
-    Write-Host "Application initialization complete"
+    # Final data store test
+    Test-DataStores
+    
+    Write-Host "`n=== Application Initialization Completed Successfully ===" -ForegroundColor Green
 
+    # Add debug info to window loaded event
+    $mainWindow.Add_Loaded({
+        Write-DebugInfo "Window Loaded event triggered"
+        Test-DataStores
+    })
+
+    Write-DebugInfo "About to show main window"
     # Show the window
-    $mainWindow.ShowDialog()
+    try {
+        Write-Host "About to show main window dialog..."
+        $result = $mainWindow.ShowDialog()
+        Write-Host "Dialog result: $result"
+        Write-Host "Dialog closed normally"
+    } catch {
+        Write-Host "Error showing dialog: $_"
+        Write-Host "Exception details: $($_.Exception.GetType().Name) - $($_.Exception.Message)"
+    }
 }
 catch {
-    Write-Host "Fatal Error: $_"
+    Write-Host "`n=== Application Initialization Failed ===" -ForegroundColor Red
+    Write-Host "Error details:" -ForegroundColor Red
+    Write-Host "Message: $_" -ForegroundColor Red
+    Write-Host "Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
+    Write-Host "Stack Trace:" -ForegroundColor Red
+    Write-Host $_.ScriptStackTrace -ForegroundColor Red
+    
+    # Debug state on error
+    Write-DebugInfo "Error occurred - checking final data store state"
+    Test-DataStores
+    
     [System.Windows.MessageBox]::Show(
-        "A fatal error has occurred:`n`n$($_.Exception.Message)",
+        "Error initializing application: $($_.Exception.Message)",
         "Fatal Error",
         "OK",
         "Error"

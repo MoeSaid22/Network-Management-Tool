@@ -1542,44 +1542,116 @@ function Initialize-DataGridHandlers {
 }
 
 function Initialize-WindowLoadedHandler {
-    $mainWin.Add_Loaded({
-        try {
-            # Initialize managers after window is fully loaded
-            $script:DeviceManager = [DevicePanelManager]::new($mainWin)
-            $script:FieldManager = [FieldMappingManager]::new($mainWin)
-            
-            # Set initial visibility states
-            if ($grpSiteLookupResults) { $grpSiteLookupResults.Visibility = "Collapsed" }
-            if ($grdBackupCircuit) { $grdBackupCircuit.Visibility = "Collapsed" }
-            if ($stkPrimaryModem) { $stkPrimaryModem.Visibility = "Collapsed" }
-            if ($stkBackupModem) { $stkBackupModem.Visibility = "Collapsed" }
-            if ($pnlSiteImportProgress) { $pnlSiteImportProgress.Visibility = "Collapsed" }
-            if ($SiteStatusBar) { $SiteStatusBar.Visibility = "Collapsed" }
-            
-            # Initialize IP Network components
-            if ($grpLookupResults) { $grpLookupResults.Visibility = "Collapsed" }
-            if ($pnlImportProgress) { $pnlImportProgress.Visibility = "Collapsed" }
-            if ($MainStatusBar) { $MainStatusBar.Visibility = "Collapsed" }
-            
-            # Initialize the data grids
-            Update-DataGridWithSearch
-            
-            if ($dgSubnets -ne $null) {
-                Update-SubnetDataGridWithSearch
-            }
-            
-            if ($btnAddEntry -ne $null) {
-                Initialize-IPNetworkEventHandlers
-            }
-            
-            # Initialize phone formatting
-            $txtMainContactPhone.Add_LostFocus({ $this.Text = Format-PhoneNumber $this.Text })
-            $txtSecondContactPhone.Add_LostFocus({ $this.Text = Format-PhoneNumber $this.Text })
-            
-        } catch {
-            [System.Windows.MessageBox]::Show("Error initializing application: $_", "Initialization Error", "OK", "Error")
+$mainWin.Add_Loaded({
+    try {
+        Write-Host "[WINDOW_LOADED] Starting window loaded handler..."
+        
+        # Test data store accessibility first
+        Write-Host "[WINDOW_LOADED] Testing data stores..."
+        if ($script:siteDataStore -eq $null) {
+            Write-Host "[WINDOW_LOADED] ERROR: siteDataStore is null!"
+        } else {
+            Write-Host "[WINDOW_LOADED] siteDataStore OK"
         }
-    })
+        
+        if ($script:subnetDataStore -eq $null) {
+            Write-Host "[WINDOW_LOADED] ERROR: subnetDataStore is null!"
+        } else {
+            Write-Host "[WINDOW_LOADED] subnetDataStore OK"
+        }
+        
+        Write-Host "[WINDOW_LOADED] Initializing device and field managers..."
+        # Initialize managers after window is fully loaded
+        $script:DeviceManager = [DevicePanelManager]::new($mainWin)
+        $script:FieldManager = [FieldMappingManager]::new($mainWin)
+        Write-Host "[WINDOW_LOADED] Managers initialized successfully"
+        
+        Write-Host "[WINDOW_LOADED] Setting initial visibility states..."
+        # Set initial visibility states
+        if ($grpSiteLookupResults) { 
+            $grpSiteLookupResults.Visibility = "Collapsed" 
+            Write-Host "[WINDOW_LOADED] grpSiteLookupResults collapsed"
+        }
+        if ($grdBackupCircuit) { 
+            $grdBackupCircuit.Visibility = "Collapsed" 
+            Write-Host "[WINDOW_LOADED] grdBackupCircuit collapsed"
+        }
+        if ($stkPrimaryModem) { 
+            $stkPrimaryModem.Visibility = "Collapsed" 
+            Write-Host "[WINDOW_LOADED] stkPrimaryModem collapsed"
+        }
+        if ($stkBackupModem) { 
+            $stkBackupModem.Visibility = "Collapsed" 
+            Write-Host "[WINDOW_LOADED] stkBackupModem collapsed"
+        }
+        if ($pnlSiteImportProgress) { 
+            $pnlSiteImportProgress.Visibility = "Collapsed" 
+            Write-Host "[WINDOW_LOADED] pnlSiteImportProgress collapsed"
+        }
+        if ($SiteStatusBar) { 
+            $SiteStatusBar.Visibility = "Collapsed" 
+            Write-Host "[WINDOW_LOADED] SiteStatusBar collapsed"
+        }
+        
+        Write-Host "[WINDOW_LOADED] Setting IP Network visibility states..."
+        # Initialize IP Network components
+        if ($grpLookupResults) { 
+            $grpLookupResults.Visibility = "Collapsed" 
+            Write-Host "[WINDOW_LOADED] grpLookupResults collapsed"
+        }
+        if ($pnlImportProgress) { 
+            $pnlImportProgress.Visibility = "Collapsed" 
+            Write-Host "[WINDOW_LOADED] pnlImportProgress collapsed"
+        }
+        if ($MainStatusBar) { 
+            $MainStatusBar.Visibility = "Collapsed" 
+            Write-Host "[WINDOW_LOADED] MainStatusBar collapsed"
+        }
+        
+        Write-Host "[WINDOW_LOADED] About to initialize data grids..."
+        # Initialize the data grids
+        Update-DataGridWithSearch
+        Write-Host "[WINDOW_LOADED] Site data grid updated"
+        
+        if ($dgSubnets -ne $null) {
+            Update-SubnetDataGridWithSearch
+            Write-Host "[WINDOW_LOADED] Subnet data grid updated"
+        } else {
+            Write-Host "[WINDOW_LOADED] WARNING: dgSubnets is null"
+        }
+        
+        Write-Host "[WINDOW_LOADED] About to initialize IP Network handlers..."
+        if ($btnAddEntry -ne $null) {
+            Initialize-IPNetworkEventHandlers
+            Write-Host "[WINDOW_LOADED] IP Network handlers initialized"
+        } else {
+            Write-Host "[WINDOW_LOADED] WARNING: btnAddEntry is null"
+        }
+        
+        Write-Host "[WINDOW_LOADED] Setting up phone formatting..."
+        # Initialize phone formatting
+        if ($txtMainContactPhone) {
+            $txtMainContactPhone.Add_LostFocus({ $this.Text = Format-PhoneNumber $this.Text })
+            Write-Host "[WINDOW_LOADED] Main contact phone formatting set"
+        }
+        if ($txtSecondContactPhone) {
+            $txtSecondContactPhone.Add_LostFocus({ $this.Text = Format-PhoneNumber $this.Text })
+            Write-Host "[WINDOW_LOADED] Second contact phone formatting set"
+        }
+        
+        Write-Host "[WINDOW_LOADED] Window loaded handler completed successfully!"
+        
+    } catch {
+        Write-Host "[WINDOW_LOADED] CRITICAL ERROR in window loaded handler: $_"
+        Write-Host "[WINDOW_LOADED] Exception type: $($_.Exception.GetType().Name)"
+        Write-Host "[WINDOW_LOADED] Stack trace: $($_.ScriptStackTrace)"
+        [System.Windows.MessageBox]::Show("Error initializing application: $_", "Initialization Error", "OK", "Error")
+        
+        # Force close the window if there's a critical error
+        $mainWin.DialogResult = $false
+        $mainWin.Close()
+    }
+})
 }
 
 function Initialize-TabHandlers {
@@ -1620,27 +1692,45 @@ function Initialize-AllHandlers {
     
     try {
         Write-Host "Initializing all handlers..."
+        Write-DebugInfo "Starting handler initialization sequence"
 
         # Initialize all the controls
+        Write-DebugInfo "About to initialize control references"
         Initialize-ControlReferences -mainWin $mainWin
+        Write-DebugInfo "Control references initialized"
         
         # Initialize event handlers
+        Write-DebugInfo "About to initialize event handlers"
         Initialize-EventHandlers -mainWin $mainWin
-        Initialize-ButtonEventHandlers -mainWin $mainWin
-        Initialize-ImportExportHandlers
-        Initialize-DataGridHandlers
-        Initialize-WindowLoadedHandler
-        Initialize-TabHandlers
+        Write-DebugInfo "Event handlers initialized"
         
-        # Initialize data stores
-        $script:siteDataStore = [SiteDataStore]::new()
-        $script:subnetDataStore = [SubnetDataStore]::new()
+        Write-DebugInfo "About to initialize button event handlers"
+        Initialize-ButtonEventHandlers -mainWin $mainWin
+        Write-DebugInfo "Button event handlers initialized"
+        
+        Write-DebugInfo "About to initialize import/export handlers"
+        Initialize-ImportExportHandlers
+        Write-DebugInfo "Import/export handlers initialized"
+        
+        Write-DebugInfo "About to initialize data grid handlers"
+        Initialize-DataGridHandlers
+        Write-DebugInfo "Data grid handlers initialized"
+        
+        Write-DebugInfo "About to initialize window loaded handler"
+        Initialize-WindowLoadedHandler
+        Write-DebugInfo "Window loaded handler initialized"
+        
+        Write-DebugInfo "About to initialize tab handlers"
+        Initialize-TabHandlers
+        Write-DebugInfo "Tab handlers initialized"
         
         Write-Host "All handlers initialized successfully"
         return $true
     }
     catch {
         Write-Host "Error initializing handlers: $_"
+        Write-DebugInfo "Handler initialization failed with error: $_"
+        Write-DebugInfo "Stack trace: $($_.ScriptStackTrace)"
         throw "Failed to initialize handlers: $_"
     }
 }

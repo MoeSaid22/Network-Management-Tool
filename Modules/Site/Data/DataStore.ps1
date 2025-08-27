@@ -1,8 +1,14 @@
 class SiteDataStore {
-    hidden [string]$DataFile = "$PSScriptRoot\site_data.json"
+    hidden [string]$DataFile
     hidden [System.Collections.Generic.List[SiteEntry]]$Entries
 
     SiteDataStore() {
+        # Initialize Entries list in constructor
+        $this.Entries = [System.Collections.Generic.List[SiteEntry]]::new()
+    }
+
+    [void] SetDataPath([string]$path) {
+        $this.DataFile = $path
         $this.LoadData()
     }
 
