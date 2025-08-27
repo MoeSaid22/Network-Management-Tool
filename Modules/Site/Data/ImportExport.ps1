@@ -1351,7 +1351,18 @@ function Show-ImportModeDialog {
     
     $reader = New-Object System.Xml.XmlNodeReader $xaml
     $dialog = [Windows.Markup.XamlReader]::Load($reader)
-    $dialog.Owner = $mainWin
+    
+    # Set owner if available, otherwise center on screen
+    $dialog.WindowStartupLocation = "CenterScreen"  # Default positioning
+    try {
+        $dialogMainWin = Get-DialogMainWindow
+        if ($null -ne $dialogMainWin -and $dialogMainWin -is [System.Windows.Window]) {
+            $dialog.Owner = $dialogMainWin
+            $dialog.WindowStartupLocation = "CenterOwner"
+        }
+    } catch {
+        Write-Warning "Could not set import dialog owner: $_"
+    }
     
     # Get controls
     $rbSkip = $dialog.FindName("rbSkip")
@@ -1382,7 +1393,16 @@ function Show-ImportModeDialog {
     })
     
     # Show dialog and return result
-    $null = $dialog.ShowDialog()
+    try {
+        if ($null -eq $dialog) {
+            Write-Error "Import mode dialog is null before ShowDialog"
+            return "Cancel"
+        }
+        $null = $dialog.ShowDialog()
+    } catch {
+        Write-Error "Error showing import mode dialog: $_"
+        return "Cancel"
+    }
     
     $result = $dialog.Tag
     if ([string]::IsNullOrEmpty($result)) {
